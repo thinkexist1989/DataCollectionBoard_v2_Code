@@ -72,3 +72,6 @@ mx.scratch
 #lib
 *.lib
 *.a
+
+#UE
+*.bak
