@@ -5,6 +5,7 @@
 
 extern int valarray[4]; //存放 ADS1274 四路模拟量24位值
 extern double vout[4];  //存放 ADS1274 四路模拟量转换后的电压值
+extern double v0;
 extern uint8_t bitarray[12]; //SPI2数据接收缓存
 extern int bAdsDataReady; //ADS1274收到数据置1
 

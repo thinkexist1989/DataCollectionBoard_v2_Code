@@ -2,6 +2,7 @@
 
 int valarray[4];
 double vout[4];
+double v0;
 uint8_t bitarray[12];
 uint8_t sendbuf[12]={0xFF}; //任意值
 
@@ -34,6 +35,12 @@ void ADS1274_ProcessData(void)
 			valarray[i] = (((int)bitarray[3*i] << 16)&0xFF0000) + (((int)bitarray[3*i+1] << 8)&0xFF00) + (((int)bitarray[3*i+2] << 0)&0xFF);
 			vout[i] = (double)valarray[i]/0x7FFFFF*2.5;
 		}
+	}
+	
+	static uint8_t ready = 0;
+	if(ready == 0){
+		v0 = vout[0];
+		ready++;
 	}
 }
 

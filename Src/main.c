@@ -50,6 +50,9 @@
 #include "ads1274.h"
 #include "dac8830.h"
 
+#include <string.h>
+#include <math.h>
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -131,8 +134,9 @@ int main(void)
 			//sprintf((char* )disp,"VAL: %d",123);
 		
 			OLED_ShowString(0,3,disp); 
-		
-			sprintf((char* )disp,"VOUT: %-7.5lf V",vout[0]);
+		  
+			double val = 0.17712*pow((0.999884*v0-vout[0])/(vout[0]-1.064789*v0),0.69558);
+			sprintf((char* )disp,"CI: %-7.5lf nM",val);
 			OLED_ShowString(0,6,disp);
 		}
 
@@ -214,8 +218,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim->Instance == htim3.Instance){
 		bDisplay = 1;
-		HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
-		HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
+		
+		static uint8_t iii = 0;
+		if(iii++ >= 5){
+			HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
+			HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
+			iii=0;
+		}
+		uint8_t tempbuf[100]={'\0'};
+		sprintf((char*)tempbuf,"Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);
+		HAL_UART_Transmit(&huart2,tempbuf,strlen(tempbuf),0xFFFF);
 	}
 
 }
