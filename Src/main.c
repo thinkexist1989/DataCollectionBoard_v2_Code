@@ -129,8 +129,8 @@ int main(void)
 		if(bDisplay){
 			bDisplay = 0;
 			
-			OLED_ShowString(0,0,(uint8_t*)"Hz Board V5.0");
-			sprintf((char* )disp,"DAC: %-7.3lf mV",vout[1]*1000);
+			OLED_ShowString(0,0,(uint8_t*)"GFET Nanosensor");
+			sprintf((char* )disp,"Vg: %-7.3lf mV",vout[1]*1000);
 			//sprintf((char* )disp,"VAL: %d",123);
 		
 			OLED_ShowString(0,3,disp); 
