@@ -40,6 +40,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "crc.h"
+#include "dma.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -100,6 +101,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CRC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
@@ -227,7 +229,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 		}
 		uint8_t tempbuf[100]={'\0'};
 		sprintf((char*)tempbuf,"Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);
-		HAL_UART_Transmit(&huart2,tempbuf,strlen(tempbuf),0xFFFF);
+		//HAL_UART_Transmit(&huart2,tempbuf,strlen(tempbuf),0xFFFF);
+		HAL_UART_Transmit_DMA(&huart2,tempbuf,strlen(tempbuf));
 	}
 
 }
