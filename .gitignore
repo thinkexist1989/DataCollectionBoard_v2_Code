@@ -75,3 +75,4 @@ mx.scratch
 
 #UE
 *.bak
+*.dbgconf

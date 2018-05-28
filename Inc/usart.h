@@ -61,16 +61,23 @@ extern UART_HandleTypeDef huart2;
 #define VOUT  1
 #define VALOUT 5
 #define DACSET  9
+	 
+typedef enum {FALSE = 0, TRUE = 1} BOOL;	 
+	 
 typedef struct{
 	uint8_t iRxPtr;
 	uint8_t iGetPtr;
 	uint8_t iOrder; 
 	uint8_t iEndPtr;
+	BOOL		bSended1;
+	BOOL    bSended2;
 }uartCtrl;
 
-typedef enum {FALSE = 0, TRUE = 1} BOOL;
+
 
 extern char RxBuf[256];
+extern char TxBuf1[256];
+extern char TxBuf2[256];
 extern uartCtrl uart;
 extern BOOL bUartNewData;
 

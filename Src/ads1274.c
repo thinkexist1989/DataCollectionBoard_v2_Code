@@ -40,7 +40,7 @@ void ADS1274_ProcessData(void)
 	static uint8_t ready = 0;
 	if(ready == 0){
 		v0 = vout[0];
-		ready++;
+		ready=1;
 	}
 }
 
@@ -49,7 +49,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	//UNUSED(GPIO_Pin); //为了防止某些编译器编译出错
   if(GPIO_Pin == ADDRDY_Pin){
-		HAL_SPI_TransmitReceive(&hspi2,sendbuf,bitarray,12,1);
+		//HAL_SPI_TransmitReceive(&hspi2,sendbuf,bitarray,12,1);
+		HAL_SPI_Receive(&hspi2,bitarray,12,1);
 		bAdsDataReady = 1;		
   } 
 }

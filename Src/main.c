@@ -47,6 +47,11 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+
+/***********有几点注意事项***********
+*1. ADS1274 SPI通信必须配置为全双工master，要不然数据就不对
+*2. DMA通讯的sendbuf一定要全局变量或静态变量，因为是放到内存里慢慢发，临时变量数就不对了
+*************************************/
 #include "oled.h"
 #include "ads1274.h"
 #include "dac8830.h"
@@ -68,7 +73,25 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void InitWIFI(void)
+{
+			uint8_t tempbuf[256]={'\0'};
+			HAL_Delay(5000);
+			sprintf((char*)tempbuf,"AT+CIPSTART=\"TCP\",\"192.168.1.100\",8080\r\n");		 //连接热TCPIP服务器
+			HAL_UART_Transmit(&huart2,tempbuf,100,0xFFFF);
+			
+			HAL_Delay(1000);
+			memcpy(tempbuf,'\0',256);
+			sprintf((char*)tempbuf,"AT+CIPMODE=1\r\n");		 //1透传模式
+			HAL_UART_Transmit(&huart2,tempbuf,100,0xFFFF);
+			
+			HAL_Delay(1000);
+			memcpy(tempbuf,'\0',256);
+			sprintf((char*)tempbuf,"AT+CIPSEND\r\n");		 //连接热TCPIP服务器
+			HAL_UART_Transmit(&huart2,tempbuf,100,0xFFFF);
+			HAL_Delay(1000);
+			
+}
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -111,14 +134,28 @@ int main(void)
   MX_TIM3_Init();
 
   /* USER CODE BEGIN 2 */
+	OLED_ShowString(0,3,(uint8_t*)"Initializing");   //装逼用
 	OLED_Init();
 	OLED_Clear();
 	//ADS1274_Init();
 	HAL_UART_Receive_IT(&huart1, (uint8_t *)(&RxBuf[uart.iRxPtr]), 1);
 	HAL_TIM_Base_Start_IT(&htim3);
 	
+	
+	//InitWIFI();
+	OLED_Clear();
+	OLED_ShowString(0,3,(uint8_t*)"Complete!!!"); //装逼用
+	HAL_Delay(1000);
+	
 	iDacMv = 10;
 	DAC_SetVout(iDacMv);
+	
+	
+	uart.bSended2 = TRUE;
+	uart.bSended1 = TRUE;
+
+	
+	
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -218,19 +255,24 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+
 	if (htim->Instance == htim3.Instance){
-		bDisplay = 1;
+		//bDisplay = 1;
 		
 		static uint8_t iii = 0;
-		if(iii++ >= 5){
+		if(iii++ >= 10){
+			bDisplay = 1;
 			HAL_GPIO_TogglePin(LED1_GPIO_Port,LED1_Pin);
 			HAL_GPIO_TogglePin(LED2_GPIO_Port,LED2_Pin);
 			iii=0;
+			
+			memcpy(TxBuf2,'\0',256);
+			sprintf((char*)TxBuf2,"Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);
+			HAL_UART_Transmit_DMA(&huart2,TxBuf2,strlen(TxBuf2));
+			
+			//HAL_UART_Transmit(&huart2,tempbuf,strlen(tempbuf),0xFFFF);
 		}
-		uint8_t tempbuf[100]={'\0'};
-		sprintf((char*)tempbuf,"Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);
-		//HAL_UART_Transmit(&huart2,tempbuf,strlen(tempbuf),0xFFFF);
-		HAL_UART_Transmit_DMA(&huart2,tempbuf,strlen(tempbuf));
+
 	}
 
 }

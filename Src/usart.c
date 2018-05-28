@@ -49,7 +49,9 @@
 extern double vout[4];
 extern int valarray[4];
 
-char RxBuf[256] = {0}; //0xff
+char RxBuf[256] = {'0'}; //0xff
+char TxBuf1[256] = {'0'};
+char TxBuf2[256] = {'0'};
 uartCtrl uart;
 BOOL bUartNewData = FALSE;
 
@@ -265,8 +267,8 @@ PUTCHAR_PROTOTYPE
 {
   /* Place your implementation of fputc here */
   /* e.g. write a character to the EVAL_COM1 and Loop until the end of transmission */
-  //HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
-  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ch, 1);
+  HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+  //HAL_UART_Transmit_DMA(&huart1, (uint8_t *)&ch, 1);
   return ch;
 }
 
@@ -276,10 +278,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
   UNUSED(huart); //防止某些编译器出错
 	
-	uart.iRxPtr = (uart.iRxPtr + 1)&0xFF; //环形缓冲区处理
-	bUartNewData = TRUE;
-	HAL_UART_Receive_IT(&huart1, (uint8_t *)(&RxBuf[uart.iRxPtr]), 1);
+	if(huart == &huart1){	
+		uart.iRxPtr = (uart.iRxPtr + 1)&0xFF; //环形缓冲区处理
+		bUartNewData = TRUE;
+		//dataFrame_OK(&uart, RxBuf);
+	
+		HAL_UART_Receive_IT(&huart1, (uint8_t *)(&RxBuf[uart.iRxPtr]), 1);
+	}
 }
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	UNUSED(huart); //防止某些编译器出错
+	
+	if(huart == &huart1){	
+		uart.bSended1 = TRUE;
+	}
+	else if(huart == &huart2){
+		uart.bSended2 = TRUE;
+	}
+}  
 
 
 /******串口数据帧解析函数********/
@@ -319,8 +337,14 @@ void dataFrame_OK(uartCtrl* pUart, char* pBuf)
 								printf("%f\n", vout[3]);
 								break;
 							case '5':
-								printf("Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);
+							{
+								memcpy(TxBuf1,'\0',256);
+								sprintf((char*)TxBuf1,"Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);
+								HAL_UART_Transmit_DMA(&huart1,TxBuf1,strlen(TxBuf1));
+								//HAL_UART_Transmit_DMA(&huart1,tempbuf,100);
+								//printf("Vout1: %f, Vout2: %f, Vout3: %f, Vout4: %f\n", vout[0],vout[1],vout[2],vout[3]);															
 								break;
+							}
 							default: break;
 						}
 						break;
